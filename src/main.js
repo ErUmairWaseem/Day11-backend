@@ -1,19 +1,63 @@
-import {MongoClient} from "mongodb";
+import { MongoClient } from "mongodb";
+import express from "express";
+const app = express();
 
-async function main(){
-    const uri = "mongodb://127.0.0.1:27017";
+async function addrecord(req, res) {
+  const uri = "mongodb://127.0.0.1:27017";
+  const client = new MongoClient(uri);
 
-    const client = new MongoClient(uri);
+  const db = client.db("mydb");
+  const messageColl = db.collection("message");
 
-    const db = client.db("mydb");
-    const messagecoll = db.collection("message");
+  let inputDoc = {
+    message: req.query.message || "default",
+  };
+  await messageColl.insertOne(inputDoc);
 
-    let inputDoc = {message : "Hello Mumbai"};
-    await messagecoll.insertOne(inputDoc);
+  await client.close();
 
-    
-    await client.close();
-    console.log("Record Added...!");
+  // string response
+  // res.send("record added")
+
+  // json response :: preferred
+  res.json({ opr: "success" });
 }
 
-main();
+async function findAllMessage(req, res) {
+  const uri = "mongodb://127.0.0.1:27017";
+  const client = new MongoClient(uri);
+
+  const db = client.db("mydb");
+  const messageColl = db.collection("message");
+
+  let list = await messageColl.find().toArray();
+
+  await client.close();
+  res.json(list);
+}
+async function addTodo(req, res) {
+    const uri = "mongodb://127.0.0.1:27017";
+    const client = new MongoClient(uri);
+  
+    const db = client.db("myProject");
+    const messageColl = db.collection("todo");
+  
+    let inputDoc = {
+      task: req.query.task,
+      description: req.query.description
+    };
+    await messageColl.insertOne(inputDoc);
+  
+    await client.close();
+  
+    res.json({ opr: "success" });
+  }
+
+// http://localhost:4000/addrecord
+app.get("/addrecord", addrecord);
+app.get("/findAll", findAllMessage);
+app.get("/addtodo", addTodo);
+
+
+// http://localhost:4000/
+app.listen(4000);
